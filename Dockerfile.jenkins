@@ -1,0 +1,16 @@
+FROM jenkins/jenkins:lts
+
+USER root
+
+# Install Docker CLI and kubectl so Jenkins can build images and interact with Minikube
+RUN apt-get update && \
+    apt-get install -y docker.io curl && \
+    curl -LO "https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubectl" && \
+    chmod +x kubectl && \
+    mv kubectl /usr/local/bin/
+
+USER jenkins
+
+# Copy and install plugins automatically
+COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
+RUN jenkins-plugin-cli -f /usr/share/jenkins/ref/plugins.txt

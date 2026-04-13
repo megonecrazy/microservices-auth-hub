@@ -48,6 +48,9 @@ jwt:
 # ── App ──
 app:
   name: Auth Service
+  kafka:
+    topics:
+      user-registration: user-registration-events
 
 # ── Observability ──
 management:

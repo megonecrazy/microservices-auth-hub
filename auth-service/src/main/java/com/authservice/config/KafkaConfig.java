@@ -23,10 +23,13 @@ public class KafkaConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
-    // ── Topic ──
+    @Value("${app.kafka.topics.user-registration:user-registration-events}")
+    private String userRegistrationTopic;
+
+    // ── Topic (auto-created on startup if it doesn't exist) ──
     @Bean
     public NewTopic userRegistrationTopic() {
-        return TopicBuilder.name("user-registration-events")
+        return TopicBuilder.name(userRegistrationTopic)
                 .partitions(3)
                 .replicas(1)
                 .build();

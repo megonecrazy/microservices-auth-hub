@@ -1,0 +1,26 @@
+# ── Build artifacts ──
+**/target/
+**/*.jar
+**/*.war
+
+# ── IDE ──
+**/.settings/
+**/.classpath
+**/.project
+**/.factorypath
+**/.idea/
+**/*.iml
+**/.vscode/
+
+# ── Maven wrapper ──
+**/.mvn/
+**/mvnw
+**/mvnw.cmd
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+
+# ── Misc ──
+**/.metadata/
+**/HELP.md

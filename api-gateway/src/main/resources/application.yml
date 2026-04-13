@@ -1,0 +1,82 @@
+server:
+  port: 8080
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+  level:
+    org.springframework.cloud.gateway: INFO
+    org.springframework.web.reactive: INFO
+    resilience4j: INFO
+    com.apigateway: INFO
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        # Record these exception types as failures in the sliding window
+        recordExceptions:
+          - java.lang.Exception
+          - java.net.ConnectException
+          - org.springframework.cloud.gateway.support.NotFoundException
+          - io.netty.channel.ConnectTimeoutException
+          - java.util.concurrent.TimeoutException
+    instances:
+      authCircuitBreaker:
+        baseConfig: default
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 20s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+  timelimiter:
+    instances:
+      authCircuitBreaker:
+        timeoutDuration: 5s
+        cancelRunningFuture: true
+
+spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:default}
+  reactor:
+    context-propagation: auto
+  application:
+    name: API-GATEWAY
+  cloud:
+    gateway:
+      routes:
+        - id: auth-service
+          uri: http://auth-service:8081
+          predicates:
+            - Path=/auth/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
+                # Also trigger fallback on these HTTP status codes from downstream
+                statusCodes: 500,502,503,504
+
+# JWT — must match auth-service secret exactly
+jwt:
+  secret: ${JWT_SECRET:mysecretkeymysecretkeymysecretkeymysecretkey}
+
+management:
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_ENDPOINT:http://zipkin:9411/api/v2/spans}
+  tracing:
+    sampling:
+      probability: 1.0
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true

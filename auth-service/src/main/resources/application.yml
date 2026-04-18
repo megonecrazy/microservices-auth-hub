@@ -8,6 +8,9 @@ logging:
     com.authservice: INFO
 
 spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
   application:
     name: auth-service
 
@@ -43,15 +46,12 @@ jwt:
 # ── App ──
 app:
   name: Auth Service
+  messaging:
+    kafka:
+      enabled: ${KAFKA_ENABLED:false}
 
 # ── Observability ──
 management:
-  zipkin:
-    tracing:
-      endpoint: ${ZIPKIN_ENDPOINT:http://zipkin:9411/api/v2/spans}
-  tracing:
-    sampling:
-      probability: 1.0
   endpoints:
     web:
       exposure:

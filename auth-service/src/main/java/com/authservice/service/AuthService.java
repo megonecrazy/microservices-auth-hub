@@ -2,6 +2,7 @@ package com.authservice.service;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,13 +39,13 @@ public class AuthService {
     private final OtpRepository otpRepo;
     private final PasswordEncoder encoder;
     private final JwtProvider jwtProvider;
-    private final KafkaEventPublisher eventPublisher;
+    private final Optional<KafkaEventPublisher> eventPublisher;
 
     public AuthService(UserRepository userRepo,
                        OtpRepository otpRepo,
                        PasswordEncoder encoder,
                        JwtProvider jwtProvider,
-                       KafkaEventPublisher eventPublisher) {
+                       Optional<KafkaEventPublisher> eventPublisher) {
         this.userRepo = userRepo;
         this.otpRepo = otpRepo;
         this.encoder = encoder;
@@ -188,6 +189,10 @@ public class AuthService {
                 .otpCode(otpCode)
                 .timestamp(LocalDateTime.now())
                 .build();
-        eventPublisher.publishUserRegistered(event);
+        if (eventPublisher.isPresent()) {
+            eventPublisher.get().publishUserRegistered(event);
+        } else {
+            log.info("Kafka publisher disabled. Skipping event dispatch for {}", user.getEmail());
+        }
     }
 }

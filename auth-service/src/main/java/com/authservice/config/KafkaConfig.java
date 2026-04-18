@@ -20,7 +20,7 @@ import com.authservice.event.UserRegisteredEvent;
 @Configuration
 public class KafkaConfig {
 
-    @Value("${spring.kafka.bootstrap-servers}")
+    @Value("${spring.kafka.bootstrap-servers:localhost:9092}")
     private String bootstrapServers;
 
     @Value("${app.kafka.topics.user-registration:user-registration-events}")

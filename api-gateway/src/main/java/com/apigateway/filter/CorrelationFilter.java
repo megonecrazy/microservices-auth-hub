@@ -18,18 +18,19 @@ public class CorrelationFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        String correlationId = exchange.getRequest().getHeaders().getFirst(CORRELATION_ID_HEADER);
-        if (correlationId == null || correlationId.isBlank()) {
-            correlationId = UUID.randomUUID().toString();
-        }
+        String incomingCorrelationId = exchange.getRequest().getHeaders().getFirst(CORRELATION_ID_HEADER);
+        String correlationId = (incomingCorrelationId == null || incomingCorrelationId.isBlank())
+                ? UUID.randomUUID().toString()
+                : incomingCorrelationId;
 
         ServerHttpRequest request = exchange.getRequest()
                 .mutate()
                 .header(CORRELATION_ID_HEADER, correlationId)
                 .build();
 
-        ServerWebExchange mutatedExchange = exchange.mutate().request(request).build();
-        mutatedExchange.getResponse().getHeaders().set(CORRELATION_ID_HEADER, correlationId);
+        ServerWebExchange mutatedExchange = exchange.mutate()
+                .request(request)
+                .build();
 
         return chain.filter(mutatedExchange);
     }
